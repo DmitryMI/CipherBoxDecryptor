@@ -33,10 +33,14 @@ namespace CipherBoxDecryptor.CipherBoxTools
             byte[] decodePwd = _decodingService.Decode(pwd);
             _pwdHash = _hashService.GetHash(decodePwd);
 
-            if(iv != null)
+            //Logger.Log("String: {0}\tBytes: {1}\tHash: {2}", pwd, Utils.PrintByteArray(decodePwd), Utils.PrintByteArray(_pwdHash));
+
+            if (iv != null)
             {
                 byte[] decodeIv = _decodingService.Decode(iv);
                 _ivHash = _hashService.GetHash(decodeIv);
+
+                //Logger.Log("String: {0}\tBytes: {1}\tHash: {2}", iv, Utils.PrintByteArray(decodeIv), Utils.PrintByteArray(_ivHash));
             }
         }
 
@@ -84,8 +88,6 @@ namespace CipherBoxDecryptor.CipherBoxTools
             if (_pwdHash == null)
                 throw new CipherDataNotSetException();
 
-            
-
             IBlockCryptoService svc = (IBlockCryptoService)_cryptoService;
             svc.InitBlockTransform(_pwdHash, _ivHash, dir);
 
@@ -102,9 +104,8 @@ namespace CipherBoxDecryptor.CipherBoxTools
             int totalBytes = 0;
             bool isFinalBlock = false;
 
-            double progress = 0;
-            double progressIncrement = (double)blockSize / inputLength;
-
+            int prevPercentReport = -1;
+            
             while (totalBytes < inputLength || !isFinalBlock)
             {
                 int readBytes = input.Read(blockBuffer, 0, blockSize);
@@ -113,11 +114,15 @@ namespace CipherBoxDecryptor.CipherBoxTools
                 
 
                 totalBytes += readBytes;
-                progress += progressIncrement;
 
-                if((int)(progress * 100) % 10 == 0)
+                double progress = (double)totalBytes / inputLength;
+                double percents = progress * 100;
+                int percentsInt = (int) percents;
+
+                if(percentsInt % 10 == 0 && percentsInt > prevPercentReport)
                 {
                     ProgressReporter?.ReportProgress("N/A", progress * 100);
+                    prevPercentReport = (int)percents;
                 }                
 
                 //Logger?.Log("Processed: {0}", (double)totalBytes / inputLength);                

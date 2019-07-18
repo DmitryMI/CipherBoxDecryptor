@@ -7,21 +7,36 @@ using System.Threading.Tasks;
 
 namespace CipherBoxDecryptor.CipherBoxTools
 {
-    class CipherBoxProcesser
+    class CipherBoxProcessor
     {
         public const string NamePrefix = ".cb_";
+        private DirectoryInfo _outputPath;
 
         ILogger _logger;
         IProgressReporter _reporter;
         EncryptionService _svc;
 
-        public CipherBoxProcesser(string password, string iv)
+        public CipherBoxProcessor(string password, string iv, DirectoryInfo outputPath)
         {
             IHashService md5 = new Md5HashService();
             IDecodingService passwordDecoder = new Utf8Coder();
             ICryptoService aes = new AesCryptoService();
             _svc = new EncryptionService(md5, passwordDecoder, aes);
             _svc.SetCipherData(password, iv);
+
+            _outputPath = outputPath;
+        }
+
+        public CipherBoxProcessor(string password, string iv, DirectoryInfo outputPath, ILogger logger)
+        {
+            IHashService md5 = new Md5HashService();
+            IDecodingService passwordDecoder = new Utf8Coder();
+            ICryptoService aes = new AesCryptoService();
+            _svc = new EncryptionService(md5, passwordDecoder, aes);
+            Logger = logger;
+            _svc.SetCipherData(password, iv);
+
+            _outputPath = outputPath;
         }
 
         public ILogger Logger { get => _logger; set { _logger = value; _svc.Logger = value; } }
@@ -29,7 +44,7 @@ namespace CipherBoxDecryptor.CipherBoxTools
 
         public void ProcessFile(FileInfo fileInfo)
         {
-            ProcessFileinternal(fileInfo);
+            ProcessFileInternal(fileInfo);
         }
 
         public async void ProcessFileAsync(FileInfo fileInfo)
@@ -45,10 +60,10 @@ namespace CipherBoxDecryptor.CipherBoxTools
 
         private void ProcessFileWrapped(object fileWrapper)
         {
-            ProcessFileinternal((FileInfo)fileWrapper);
+            ProcessFileInternal((FileInfo)fileWrapper);
         }
 
-        private void ProcessFileinternal(FileInfo fileInfo)
+        private void ProcessFileInternal(FileInfo fileInfo)
         {
             FileStream input = null;
             FileStream output = null;
@@ -80,12 +95,15 @@ namespace CipherBoxDecryptor.CipherBoxTools
                 else
                 {
                     direction = CipherDirection.Encryption;
-
                     outputName = NamePrefix + _svc.Process(name, direction, base64Coder, utf8Coder);
                 }
 
+                StringBuilder outputFullPathBuilder = new StringBuilder(_outputPath.FullName);
+                outputFullPathBuilder.Append("\\").Append(outputName);
+                string outputFullPath = outputFullPathBuilder.ToString();
+
                 input = fileInfo.OpenRead();
-                output = new FileStream(outputName, FileMode.CreateNew);
+                output = new FileStream(outputFullPath, FileMode.CreateNew);
 
                 _svc.Process(input, output, input.Length, direction);
                 
@@ -94,6 +112,7 @@ namespace CipherBoxDecryptor.CipherBoxTools
             catch(Exception ex)
             {
                 Logger.Log("Error occured: " + ex.Message);
+                throw;
             }
             finally
             {

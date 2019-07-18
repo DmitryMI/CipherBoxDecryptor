@@ -14,55 +14,112 @@ namespace CipherBoxDecryptor
 
         public const int Length = 1024;
 
-        private struct ArgrumetsParseResults
+        private struct ArgumetsParseResults
         {
             public string Password;
             public string Iv;
+            public string OutputDirectory;
+            public bool DoPause;
             public IList<string> Paths;
         }
 
-        static void Main(string[] args)
-        {           
+        static int Main(string[] args)
+        {
             ConsoleLogger consoleLogger = new ConsoleLogger();
             LogReporter reporter = new LogReporter(consoleLogger);
-            
 
-            ArgrumetsParseResults argParse = ParseArguments(args);
+
+            ArgumetsParseResults argParse = ParseArguments(args);
             string password = String.Empty, iv = String.Empty;
 
             if (argParse.Password == null)
             {
-                password = RetreivePassword();                
+                password = RetreivePassword();
+            }
+            else
+            {
+                password = argParse.Password;
             }
 
             if (argParse.Iv == null)
-            {                
+            {
                 iv = RetreiveIv();
             }
-
-            IList<FileInfo> files = GetFiles(argParse.Paths);
-
-            CipherBoxProcesser processer = new CipherBoxProcesser(password, iv);
-            processer.Logger = consoleLogger;
-            processer.Reporter = reporter;
-            
-
-            foreach (var file in files)
+            else
             {
-                processer.ProcessFile(file);
+                iv = argParse.Iv;
             }
 
+            IList<FileInfo> files;
+            if (argParse.Paths != null && argParse.Paths.Count > 0)
+                files = GetFiles(argParse.Paths);
+            else
+            {
+                files = GetFilesFromConsole();
+            }
+
+            DirectoryInfo outputDir;
+
+            if (argParse.OutputDirectory != null && !String.IsNullOrEmpty(argParse.OutputDirectory))
+            {
+                outputDir = new DirectoryInfo(argParse.OutputDirectory);
+            }
+            else
+            {
+                outputDir = new DirectoryInfo(Environment.CurrentDirectory);
+            }
+
+            CipherBoxProcessor processer = new CipherBoxProcessor(password, iv, outputDir, consoleLogger);
+            processer.Logger = consoleLogger;
+            processer.Reporter = reporter;
+
+            int errorCount = 0;
+            int totalCount = 0;
+            foreach (var file in files)
+            {
+                totalCount++;
+                try
+                {
+                    processer.ProcessFile(file);
+                }
+                catch (Exception)
+                {
+                    errorCount++;
+                }
+            }
+
+            Console.WriteLine("TOTAL: " + totalCount);
+            Console.WriteLine("ERRORS: " + errorCount);
+
             Console.WriteLine("Finished");
-            Console.ReadKey();
+
+            if(argParse.DoPause)
+                Console.ReadKey();
+
+            return errorCount;
         }
 
-        static ArgrumetsParseResults ParseArguments(string[] args)
+        static ArgumetsParseResults ParseArguments(string[] args)
         {
-            ArgrumetsParseResults results = new ArgrumetsParseResults();
+            ArgumetsParseResults results = new ArgumetsParseResults();
             results.Paths = new List<string>();
+            results.DoPause = true;
             for(int i = 0; i < args.Length; i++)
             {
-                if(args[i].Equals("/p"))
+                if (args[i].Equals("/help"))
+                {
+                    Console.WriteLine("/help\t\tthis help");
+                    Console.WriteLine("/p <password>\t\tPassword");
+                    Console.WriteLine("/iv <iv>\t\tInitialization vector");
+                    Console.WriteLine("/out <path>\t\tOutput folder");
+                    Console.WriteLine("/nosuspend\t\tApplication will exit immidiately");
+                    Console.WriteLine("<...paths...>\t\tAll arguments without /<modifier> will be considered as input files and directories.");
+                }
+                else if (args[i].Equals("/nosuspend"))
+                {
+                    results.DoPause = false;
+                }
+                else if(args[i].Equals("/p"))
                 {
                     i++;
                     results.Password = args[i];
@@ -71,6 +128,11 @@ namespace CipherBoxDecryptor
                 {
                     i++;
                     results.Iv = args[i];
+                }
+                else if (args[i].Equals("/out"))
+                {
+                    i++;
+                    results.OutputDirectory = args[i];
                 }
                 else
                 {
@@ -81,28 +143,44 @@ namespace CipherBoxDecryptor
             return results;
         }
         
-        static IList<FileInfo> GetFiles(IList<string> paths)
+        static IList<FileInfo> GetFiles(ICollection<string> paths)
         {
             List<FileInfo> fileInfos = new List<FileInfo>();
 
-            foreach(var path in paths)
+            if (paths == null || paths.Count == 0)
             {
-                if (File.Exists(path))
+                Console.WriteLine("Nothing to process.");
+            }
+            else
+            {
+                foreach (var path in paths)
                 {
-                    fileInfos.Add(new FileInfo(path));
-                }
-                else if (Directory.Exists(path))
-                {
-                    DirectoryInfo dir = new DirectoryInfo(path);
-                    LoadAllFiles(dir, fileInfos, 0, 3);
-                }
-                else
-                {
-                    Console.WriteLine("Specified path does not exist!");
+                    if (File.Exists(path))
+                    {
+                        fileInfos.Add(new FileInfo(path));
+                    }
+                    else if (Directory.Exists(path))
+                    {
+                        DirectoryInfo dir = new DirectoryInfo(path);
+                        LoadAllFiles(dir, fileInfos, 0, 3);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Path {0} does not exist!", path);
+                    }
                 }
             }
 
             return fileInfos;
+        }
+
+        static IList<FileInfo> GetFilesFromConsole()
+        {
+            Console.WriteLine("Enter paths in quotes using space as separator: ");
+            string input = Console.ReadLine();
+            string[] paths = input?.Split(' ');
+
+            return GetFiles(paths);
         }
 
         static void LoadAllFiles(DirectoryInfo dir, IList<FileInfo> fileList, int level, int maxLevel)

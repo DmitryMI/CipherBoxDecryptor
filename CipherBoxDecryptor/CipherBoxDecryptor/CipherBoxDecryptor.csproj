@@ -44,7 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CipherBoxTools\AesCryptoService.cs" />
-    <Compile Include="CipherBoxTools\Base64Coder.cs" />
+    <Compile Include="CipherBoxTools\EncodingServices\Base64Coder.cs" />
     <Compile Include="CipherBoxTools\BlockCipherNotInitiatedException.cs" />
     <Compile Include="CipherBoxTools\CipherBoxProcesser.cs" />
     <Compile Include="CipherBoxTools\CipherDataNotSetException.cs" />
@@ -57,10 +57,11 @@
     <Compile Include="CipherBoxTools\IEncodingService.cs" />
     <Compile Include="CipherBoxTools\IHashService.cs" />
     <Compile Include="CipherBoxTools\ILogger.cs" />
+    <Compile Include="CipherBoxTools\InvalidPathException.cs" />
     <Compile Include="CipherBoxTools\IProgressReporter.cs" />
     <Compile Include="CipherBoxTools\Md5HashService.cs" />
-    <Compile Include="CipherBoxTools\UnicodeDecoder.cs" />
-    <Compile Include="CipherBoxTools\Utf8Coder.cs" />
+    <Compile Include="CipherBoxTools\EncodingServices\UnicodeDecoder.cs" />
+    <Compile Include="CipherBoxTools\EncodingServices\Utf8Coder.cs" />
     <Compile Include="ConsoleLogger.cs" />
     <Compile Include="LogReporter.cs" />
     <Compile Include="Program.cs" />
