@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.705
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CipherBoxDecryptor", "CipherBoxDecryptor\CipherBoxDecryptor.csproj", "{F96E4AB4-C5C0-426D-B871-B2651B88F8DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Base64Tester", "Base64Tester\Base64Tester.csproj", "{75805795-714A-416E-A6F0-5FA0553D3954}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F96E4AB4-C5C0-426D-B871-B2651B88F8DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F96E4AB4-C5C0-426D-B871-B2651B88F8DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F96E4AB4-C5C0-426D-B871-B2651B88F8DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F96E4AB4-C5C0-426D-B871-B2651B88F8DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75805795-714A-416E-A6F0-5FA0553D3954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75805795-714A-416E-A6F0-5FA0553D3954}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75805795-714A-416E-A6F0-5FA0553D3954}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75805795-714A-416E-A6F0-5FA0553D3954}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {75A98537-7099-4F53-933A-2CA8E1F3FE37}
+	EndGlobalSection
+EndGlobal
